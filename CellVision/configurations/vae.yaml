@@ -1,0 +1,31 @@
+seed: 42
+
+wandb:
+  project: "CellVision-2025"
+  run_name: "vae"
+  save_dir: "/home/samva/Doctorate/trimera_project/experiments/wandb"
+
+trainer:
+  log_every_n_steps: 50
+  max_epochs: 100
+  accelerator: "gpu"
+  deterministic: true
+
+data:
+  root: "/home/sam/SCI/cellenONE_project/datasets"
+  val: "val_ChristineErwin_SCI.lance"
+  train: "train_SCI.lance"
+  test: "test_Backup_SCI.lance"
+  num_workers: 12
+  batch_size: 64
+  num_workers: 8
+
+model:
+  name: "VAE"
+  in_channels: 1
+  z_dim: 8
+  base_filters: 16
+  hidden_features: 16
+  out_size: 64
+  beta: 1.0
+  lr: 0.00001

@@ -1,0 +1,35 @@
+# Python cache
+__pycache__/
+*/__pycache__/
+**/__pycache__/
+*.egg-info/
+
+# WandB logs
+wandb/
+*/wandb/
+**/wandb/
+
+# Common Python ignores
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment folders (if created locally)
+.venv/
+venv/
+env/
+ENV/
+
+# Ignore log files
+*.log
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# macOS / Linux system files
+.DS_Store
+Thumbs.db
