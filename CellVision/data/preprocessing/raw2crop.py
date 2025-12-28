@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import os
 
@@ -150,3 +151,189 @@ def pad_borders(img, target_w=68, target_h=68):
         value=0,
         **border_additions
     )
+
+def process_cells(
+    df,
+    background_map,
+    path_column='path',
+    key_1='folder',
+    key_2='img_width'
+):
+    print(f'Samples to run {len(df)}')
+    samples = []
+    for i, row in tqdm(df.iterrows()):
+        bg = background_map[(row[key_1], row[key_2])]
+        cell, diff, mask = mask_cells(
+            path_cell=row[path_column],
+            path_background=bg,
+            visualize=False
+        )
+        cropped_cells, _ = crop_cells(
+            img_cell=cell,
+            mask=mask,
+            visualize=False,
+        )
+        cropped_cells_diff, contours = crop_cells(
+            img_cell=diff,
+            mask=mask,
+            visualize=False,
+        )
+        if len(cropped_cells_diff) != 0:
+            crops = {
+                'index': [row['index']]*len(cropped_cells),
+                'cell': cropped_cells,
+                'cell_diff': cropped_cells_diff,
+                'mask': [mask]*len(cropped_cells),
+                'contours': contours,
+            }
+        else:
+            crops = {
+                'index': [np.nan],
+                'cell': [np.nan],
+                'cell_diff': [np.nan],
+                'mask': [mask],
+                'contours': contours,
+            }
+
+        samples.append(crops)
+
+    return add_metrics(pd.DataFrame(samples), df)
+
+def add_metrics(df, annotation_table):
+
+    df['index'] = df.apply(
+        lambda x: [] if isinstance(x['cell'][0], float) else [x['index']]*len(x['cell']),
+        axis=1)
+    df = df[df['index'].apply(len)!=0]
+
+    columns_map = {i: col for i, col in enumerate(df.columns)}
+    collapsed = df.progress_apply(lambda row: pd.DataFrame(row.tolist()).T, axis=1)
+    collapsed = pd.concat(collapsed.tolist(), ignore_index=True)
+    collapsed = collapsed.rename(
+        columns=columns_map
+    )
+    collapsed['index'] = collapsed['index'].apply(lambda x: np.unique(x)[0])
+    df = collapsed.merge(annotation_table)
+
+    n_cells = df.groupby('path').count()['cell']
+    df = df.merge(n_cells.reset_index(name='n'), on = 'path')
+
+    # metrics = pd.DataFrame(df['contours'].progress_apply(lambda c: contour_metrics(c)).tolist())
+
+    metrics_2 = pd.DataFrame(df['contours'].progress_apply(lambda c: cv2.boundingRect(c)).tolist()).rename(
+        columns={
+            0: 'x',
+            1: 'y',
+            2: 'width',
+            3: 'height'
+        }
+    )
+
+    df = pd.concat([df, metrics_2], axis=1)
+    return df
+
+def extract_bbox_masks(mask_matrix):
+    H, W = mask_matrix.shape
+    bbox_masks = {}
+
+    mask_ids = np.unique(mask_matrix)
+    mask_ids = mask_ids[mask_ids != 0]
+    for mask_id in mask_ids:
+        rows, cols = np.where(mask_matrix == mask_id)
+
+        r_min, r_max = rows.min(), rows.max()
+        c_min, c_max = cols.min(), cols.max()
+
+        # full-size matrix filled with 0 (outside bbox)
+        out = np.zeros((H, W), dtype=int)
+
+        # copy the bounding box region from the original
+        bbox = mask_matrix[r_min:r_max+1, c_min:c_max+1].copy().astype(np.int32)
+
+        # inside the bounding box:
+        # replace all values that are NOT the current mask with -1
+        bbox[bbox != mask_id] = -1
+
+        # insert back into the full-size output
+        out[r_min:r_max+1, c_min:c_max+1] = bbox
+
+        bbox_masks[mask_id] = out
+
+    return bbox_masks
+
+def get_bbox(mask_matrix, mask_id):
+    rows, cols = np.where(mask_matrix == mask_id)
+    r_min, r_max = rows.min(), rows.max()
+    c_min, c_max = cols.min(), cols.max()
+    return r_min, r_max, c_min, c_max
+
+def crop_with_fixed_size(image, mask_matrix, mask_id, crop_size):
+    """
+    crop_size: (height, width)
+    """
+    H, W = image.shape[:2]
+    ch, cw = crop_size
+
+    r_min, r_max, c_min, c_max = get_bbox(mask_matrix, mask_id)
+
+    # center of the bounding box
+    r_center = (r_min + r_max) // 2
+    c_center = (c_min + c_max) // 2
+
+    r_start = r_center - ch // 2
+    c_start = c_center - cw // 2
+    r_end = r_start + ch
+    c_end = c_start + cw
+
+    # clip to image boundaries
+    r_start = max(0, r_start)
+    c_start = max(0, c_start)
+    r_end = min(H, r_end)
+    c_end = min(W, c_end)
+
+    img_crop = image[r_start:r_end, c_start:c_end]
+    mask_crop = mask_matrix[r_start:r_end, c_start:c_end]
+
+    return img_crop, mask_crop
+
+def crop_with_margin(image, mask_matrix, mask_id, margin):
+    H, W = image.shape[:2]
+
+    r_min, r_max, c_min, c_max = get_bbox(mask_matrix, mask_id)
+
+    bbox_h = r_max - r_min + 1
+    bbox_w = c_max - c_min + 1
+
+    if isinstance(margin, float):
+        m_h = int(bbox_h * margin)
+        m_w = int(bbox_w * margin)
+    else:
+        m_h = m_w = int(margin)
+
+    r_start = max(0, r_min - m_h)
+    r_end   = min(H, r_max + m_h + 1)
+    c_start = max(0, c_min - m_w)
+    c_end   = min(W, c_max + m_w + 1)
+
+    img_crop = image[r_start:r_end, c_start:c_end]
+    mask_crop = mask_matrix[r_start:r_end, c_start:c_end]
+
+    return img_crop, mask_crop
+
+def boundingbox_to_crops(row):
+    crops = []
+    crop_masks = []
+    
+    for i, bounding_box in row['bounding_boxes'].items():
+        crop_img, crop_mask = crop_with_margin(
+            image=cv2.imread(
+                row['path'],
+                cv2.IMREAD_GRAYSCALE
+            ),
+            mask_matrix=bounding_box,
+            mask_id=i,
+            margin=12
+        )
+        crops.append(crop_img)
+        crop_masks.append(crop_mask)
+    return crops, crop_masks

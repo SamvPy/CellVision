@@ -32,8 +32,11 @@ class ImageDataset(SafeLanceDataset):
 
         # Create augmented views
         targets = ImageToTensor(cell).squeeze().unsqueeze(dim=0)
-        aug_1 = SimpleAugmentor(cell).squeeze().unsqueeze(dim=0)
-        aug_2 = SimpleAugmentor(cell).squeeze().unsqueeze(dim=0)
+        aug_1 = ImageToTensor(cell).squeeze().unsqueeze(dim=0)
+        aug_2 = ImageToTensor(cell).squeeze().unsqueeze(dim=0)
+
+        # aug_1 = SimpleAugmentor(cell).squeeze().unsqueeze(dim=0)
+        # aug_2 = SimpleAugmentor(cell).squeeze().unsqueeze(dim=0)
         
         return {
             'targets': targets, # add channel dimension

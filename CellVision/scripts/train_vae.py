@@ -56,8 +56,7 @@ def train(cfg):
             beta=cfg['model']['beta']
         ),
         beta=cfg['model']['beta'],
-        lr=cfg['model']['lr'],
-        recon_type='mse'
+        lr=cfg['model']['lr']
     )
 
     # === Trainer ===
