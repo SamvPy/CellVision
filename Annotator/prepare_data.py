@@ -7,6 +7,7 @@ import json
 from tqdm import tqdm
 import os
 import argparse
+import multiprocessing
 
 # Your Lance dataset path
 BATCH_SIZE = 500  # Images per file - adjust based on your needs
@@ -44,6 +45,8 @@ def array_to_base64(arr):
     return f"data:image/png;base64,{img_str}"
 
 def main(LANCE_PATH, OUTPUT_DIR, BATCH_SIZE):
+
+    
     print(f"Loading Lance dataset from: {LANCE_PATH}")
     
     # Load Lance dataset
@@ -61,9 +64,10 @@ def main(LANCE_PATH, OUTPUT_DIR, BATCH_SIZE):
     
     batch_idx=0
     # Process in batches
-    for batch in tqdm(batches, total=num_batches, desc="Processing batches"):
+    for batch in batches:
         
         batch_df = batch.to_pandas()
+        print('Converted to pandas.')
         web_data = []
         for idx, row in batch_df.iterrows():
             try:
@@ -119,4 +123,5 @@ if __name__ == "__main__":
     lance_path = args.input
     output_json = args.output
     batch_size = args.batch_size
+    multiprocessing.set_start_method('spawn')
     main(lance_path, output_json, batch_size)

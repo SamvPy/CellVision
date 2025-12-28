@@ -57,7 +57,7 @@ const AnnotationPage = ({
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6">
         <div className="space-y-4">
-          
+
           {/* Image Caption */}
           <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
             <h2 className="text-2xl font-bold mb-2 text-white">{currentItem?.filename}</h2>
@@ -74,21 +74,19 @@ const AnnotationPage = ({
             <div className="flex border-b border-gray-700 bg-gray-900">
               <button
                 onClick={() => setActiveTab('cropped')}
-                className={`flex-1 px-6 py-4 font-semibold transition-all ${
-                  activeTab === 'cropped'
+                className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === 'cropped'
                     ? 'bg-gray-800 text-white border-b-2 border-blue-500 shadow-lg'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
-                }`}
+                  }`}
               >
                 🔬 Cropped View
               </button>
               <button
                 onClick={() => setActiveTab('original')}
-                className={`flex-1 px-6 py-4 font-semibold transition-all ${
-                  activeTab === 'original'
+                className={`flex-1 px-6 py-4 font-semibold transition-all ${activeTab === 'original'
                     ? 'bg-gray-800 text-white border-b-2 border-blue-500 shadow-lg'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
-                }`}
+                  }`}
               >
                 🖼️ Original Context
               </button>
@@ -143,27 +141,8 @@ const AnnotationPage = ({
                   </div>
                 </div>
               ) : (
+
                 <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider">Full Mask</p>
-                    <div className="bg-gray-900 rounded-lg p-3 flex items-center justify-center shadow-xl border border-gray-700" style={{ minHeight: '400px' }}>
-                      {currentItem?.masks_img ? (
-                        <img
-                          src={currentItem.masks_img}
-                          alt="Mask"
-                          className="rounded"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            maxHeight: '400px'
-                          }}
-                        />
-                      ) : (
-                        <span className="text-gray-500">No image</span>
-                      )}
-                    </div>
-                  </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider">Full Image</p>
                     <div className="bg-gray-900 rounded-lg p-3 flex items-center justify-center shadow-xl border border-gray-700" style={{ minHeight: '400px', minWidth: '400px' }}>
@@ -185,6 +164,27 @@ const AnnotationPage = ({
                       )}
                     </div>
                   </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-3 font-semibold uppercase tracking-wider">Full Mask</p>
+                    <div className="bg-gray-900 rounded-lg p-3 flex items-center justify-center shadow-xl border border-gray-700" style={{ minHeight: '400px' }}>
+                      {currentItem?.masks_img ? (
+                        <img
+                          src={currentItem.masks_img}
+                          alt="Mask"
+                          className="rounded"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            maxHeight: '400px'
+                          }}
+                        />
+                      ) : (
+                        <span className="text-gray-500">No image</span>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               )}
             </div>
@@ -193,7 +193,7 @@ const AnnotationPage = ({
           {/* Compact Annotation Section */}
           <div className="bg-gray-800 rounded-lg p-4 shadow-lg">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              
+
               {/* Metadata - Compact Horizontal */}
               <div>
                 <h3 className="text-sm font-bold mb-3 text-white flex items-center gap-2">
@@ -226,7 +226,8 @@ const AnnotationPage = ({
                 <h3 className="text-sm font-bold mb-3 text-white flex items-center gap-2">
                   ⭐ Quality Assessment
                 </h3>
-                <div className="grid grid-cols-5 gap-2">
+                {/* 👇 Changed to support 6 items and be responsive */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                   {annotationCategories.map(cat => {
                     const Icon = iconMap[cat.iconName] || AlertCircle;
                     const colors = getColorClasses(cat.color);
@@ -235,9 +236,8 @@ const AnnotationPage = ({
                       <button
                         key={cat.id}
                         onClick={() => handleAnnotation(cat.id)}
-                        className={`${colors.bg} hover:opacity-90 px-2 py-3 rounded-lg flex flex-col items-center justify-center gap-1 font-semibold transition-all shadow-lg ${
-                          isSelected ? 'ring-2 ring-white scale-105' : ''
-                        }`}
+                        className={`${colors.bg} hover:opacity-90 px-2 py-3 rounded-lg flex flex-col items-center justify-center gap-1 font-semibold transition-all shadow-lg ${isSelected ? 'ring-2 ring-white scale-105' : ''
+                          }`}
                         title={cat.label}
                       >
                         <Icon className="w-5 h-5" />

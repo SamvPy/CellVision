@@ -121,12 +121,25 @@ const DataManager = ({
                 {currentBatchInfo.imageCount} images • {(currentBatchInfo.size / 1024 / 1024).toFixed(2)} MB
               </p>
             </div>
-            <button
-              onClick={() => setShowBatchSelector(true)}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-            >
-              Switch Batch
-            </button>
+            <div className="flex gap-2">
+              {batchFiles.length > 0 && (
+                <button
+                  onClick={() => setShowBatchSelector(true)}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                >
+                  Switch Batch
+                </button>
+              )}
+              <label className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer">
+                Load New
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleSingleFileLoad}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
         </div>
       )}

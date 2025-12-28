@@ -18,6 +18,7 @@ function App() {
     { id: 'bad_segmentation', label: 'Bad Segmentation', color: 'orange', iconName: 'AlertTriangle', key: 's' },
     { id: 'debris', label: 'Debris/Dead Cell', color: 'purple', iconName: 'Zap', key: 'd' },
     { id: 'unsure', label: 'Unsure', color: 'yellow', iconName: 'HelpCircle', key: 'u' },
+    { id: 'Missing Cells', label: 'Missing Cells', color: 'blue', iconName: 'AlertCircle', key: 'm' }
   ]);
 
   const [dataset, setDataset] = useState([]);
